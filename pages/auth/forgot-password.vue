@@ -6,37 +6,30 @@
           <span class="font-display text-2xl text-ash">KanjiMe</span>
           <span class="font-display text-2xl text-gold">漢字</span>
         </NuxtLink>
-        <h1 class="font-display text-4xl text-ash font-semibold mb-2">Masuk</h1>
-        <p class="text-ash-muted text-sm">Lanjutkan perjalanan belajarmu</p>
+        <h1 class="font-display text-4xl text-ash font-semibold mb-2">Lupa Password</h1>
+        <p class="text-ash-muted text-sm">Masukkan email kamu, kami kirim link reset.</p>
       </div>
       <div class="border border-gold/20 p-8">
-        <form @submit.prevent="handleLogin" class="space-y-5">
+        <form v-if="!sent" @submit.prevent="handleReset" class="space-y-5">
           <div>
             <label class="font-mono text-xs text-gold tracking-widest uppercase block mb-2">Email</label>
             <input v-model="email" type="email" required
               class="w-full bg-ink-soft border border-gold/20 focus:border-gold px-4 py-3 text-ash text-sm outline-none transition-colors font-mono"
               placeholder="nama@email.com"/>
           </div>
-          <div>
-            <label class="font-mono text-xs text-gold tracking-widest uppercase block mb-2">Password</label>
-            <input v-model="password" type="password" required
-              class="w-full bg-ink-soft border border-gold/20 focus:border-gold px-4 py-3 text-ash text-sm outline-none transition-colors font-mono"
-              placeholder="••••••••"/>
-          </div>
-          <div class="text-right">
-            <NuxtLink to="/auth/forgot-password" class="text-ash-muted hover:text-gold text-xs font-mono tracking-widest transition-colors">
-              LUPA PASSWORD?
-            </NuxtLink>
-          </div>
           <p v-if="error" class="text-red-400 text-xs font-mono">{{ error }}</p>
           <button type="submit" :disabled="loading"
             class="w-full py-3 bg-gold text-ink font-mono text-sm tracking-widest hover:bg-gold-light transition-all disabled:opacity-50">
-            {{ loading ? 'Memuat...' : 'Masuk' }}
+            {{ loading ? 'Mengirim...' : 'Kirim Link Reset' }}
           </button>
         </form>
+        <div v-else class="text-center py-4">
+          <div class="text-gold font-mono text-xs tracking-widest mb-3">EMAIL TERKIRIM</div>
+          <p class="text-ash-muted text-sm">Cek inbox kamu dan klik link reset password.</p>
+        </div>
         <p class="text-center text-ash-muted text-sm mt-6">
-          Belum punya akun?
-          <NuxtLink to="/auth/register" class="text-gold hover:underline">Daftar gratis</NuxtLink>
+          Ingat password?
+          <NuxtLink to="/auth/login" class="text-gold hover:underline">Masuk</NuxtLink>
         </p>
       </div>
     </div>
@@ -46,17 +39,19 @@
 <script setup lang="ts">
 definePageMeta({ layout: false })
 const supabase = useSupabaseClient()
-const router = useRouter()
 const email = ref('')
-const password = ref('')
 const error = ref('')
 const loading = ref(false)
+const sent = ref(false)
 
-async function handleLogin() {
+async function handleReset() {
   loading.value = true
   error.value = ''
-  const { error: err } = await supabase.auth.signInWithPassword({ email: email.value, password: password.value })
+  const { error: err } = await supabase.auth.resetPasswordForEmail(email.value, {
+    redirectTo: 'https://kanjime.vercel.app/auth/reset-password'
+  })
   if (err) { error.value = err.message; loading.value = false; return }
-  router.push('/dashboard')
+  sent.value = true
+  loading.value = false
 }
 </script>
