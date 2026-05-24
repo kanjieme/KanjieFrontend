@@ -30,6 +30,7 @@ export default defineNuxtConfig({
         { name: 'theme-color', content: '#0d0f1a' },
       ],
       link: [
+        { rel: 'manifest', href: '/manifest.json' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap' },
       ],
