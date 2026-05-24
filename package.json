@@ -1,0 +1,22 @@
+{
+  "name": "kanjime-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "generate": "nuxt generate"
+  },
+  "dependencies": {
+    "@nuxtjs/supabase": "^1.4.6",
+    "@vueuse/core": "^13.0.0",
+    "@vueuse/nuxt": "^13.0.0",
+    "nuxt": "^3.16.0",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.13.1",
+    "@vueuse/motion": "^3.0.0"
+  }
+}

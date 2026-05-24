@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #0d0f1a;
+  --ink-soft: #13162a;
+  --ink-muted: #1c2040;
+  --gold: #c9a84c;
+  --gold-light: #e8c96a;
+  --ash: #f0ece4;
+  --ash-soft: #d4cfc6;
+  --ash-muted: #8a8580;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--ink);
+  color: var(--ash);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+::-webkit-scrollbar-thumb { background: var(--gold-dark, #8a6800); border-radius: 2px; }
+
+/* Gold text */
+.text-gold { color: var(--gold); }
+.text-ash { color: var(--ash); }
+
+/* Noise texture overlay */
+.noise::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.4;
+}
+
+/* Gradient mesh background */
+.mesh-bg {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(201,168,76,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 90%, rgba(201,168,76,0.05) 0%, transparent 60%),
+    var(--ink);
+}
+
+/* Gold border */
+.border-gold { border-color: var(--gold); }
+
+/* Lesson progress checkpoint */
+.checkpoint-done { background: var(--gold); box-shadow: 0 0 12px rgba(201,168,76,0.4); }
+.checkpoint-active { border: 2px solid var(--gold); }
+.checkpoint-lock { border: 2px solid #2a2d45; }
+
+/* Quiz option */
+.quiz-option {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.quiz-option:hover { border-color: var(--gold); background: rgba(201,168,76,0.06); }
+.quiz-option.selected { border-color: var(--gold); background: rgba(201,168,76,0.12); }
+.quiz-option.correct { border-color: #4ade80; background: rgba(74,222,128,0.1); }
+.quiz-option.wrong { border-color: #f87171; background: rgba(248,113,113,0.1); }
+
+/* Smooth page transitions */
+.page-enter-active, .page-leave-active { transition: opacity 0.25s ease; }
+.page-enter-from, .page-leave-to { opacity: 0; }
