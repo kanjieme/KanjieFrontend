@@ -1,6 +1,12 @@
 <template>
   <div class="min-h-screen px-6 py-24">
     <div class="max-w-4xl mx-auto">
+      <!-- Back -->
+      <NuxtLink to="/"
+        class="inline-flex items-center gap-2 font-mono text-xs text-ash-muted hover:text-gold transition-colors mb-8">
+        ← Kembali ke Beranda
+      </NuxtLink>
+
       <div class="mb-12">
         <p class="font-mono text-gold text-xs tracking-widest uppercase mb-2">JLPT {{ levelCode }}</p>
         <h1 class="font-display text-5xl text-ash font-semibold mb-4">
