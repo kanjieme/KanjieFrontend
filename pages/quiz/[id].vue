@@ -242,7 +242,7 @@ async function submitQuiz() {
       localStorage.setItem(`quiz_cooldown_${route.params.id}`, String(Date.now() + 3 * 60 * 1000))
     }
   } catch (e) {
-    console.error('Quiz submit error:', e)
+    alert("Error: " + JSON.stringify(e))
   }
 }
 
