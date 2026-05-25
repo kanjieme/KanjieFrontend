@@ -1,17 +1,35 @@
 <template>
   <div class="min-h-screen px-6 py-24">
     <div class="max-w-2xl mx-auto">
-      <!-- Loading -->
+
+      <NuxtLink to="/dashboard"
+        class="inline-flex items-center gap-2 font-mono text-xs text-ash-muted hover:text-gold transition-colors mb-8">
+        ← Kembali ke Dashboard
+      </NuxtLink>
+
       <div v-if="loading" class="text-ash-muted font-mono text-sm text-center">Memuat quiz...</div>
+
+      <!-- Cooldown screen -->
+      <div v-else-if="onCooldown" class="text-center py-20">
+        <div class="font-mono text-gold text-xs tracking-widest mb-4">COOLDOWN</div>
+        <div class="font-display text-6xl text-ash font-semibold mb-2">{{ cooldownDisplay }}</div>
+        <p class="text-ash-muted text-sm mb-8">Tunggu sebelum bisa mengulang quiz.</p>
+        <NuxtLink to="/dashboard"
+          class="px-6 py-3 border border-gold/30 text-ash font-mono text-sm tracking-widest hover:border-gold transition-all">
+          KEMBALI KE DASHBOARD
+        </NuxtLink>
+      </div>
 
       <!-- Quiz -->
       <div v-else-if="quiz && !submitted">
-        <div class="mb-8">
-          <p class="font-mono text-gold text-xs tracking-widest uppercase mb-2">Quiz</p>
-          <h1 class="font-display text-3xl text-ash font-semibold">{{ quiz.title }}</h1>
-          <div class="flex items-center gap-4 mt-3 font-mono text-xs text-ash-muted">
+        <div class="mb-6">
+          <p class="font-mono text-gold text-xs tracking-widest uppercase mb-2">QUIZ</p>
+          <h1 class="font-display text-3xl text-ash font-semibold mb-3">{{ quiz.title }}</h1>
+          <div class="flex items-center justify-between font-mono text-xs text-ash-muted">
             <span>{{ currentIndex + 1 }} / {{ questions.length }} soal</span>
-            <span v-if="quiz.time_limit_minutes" class="text-gold">{{ timeLeft }} menit tersisa</span>
+            <span :class="timeLeft <= 60 ? 'text-red-400' : 'text-gold'">
+              {{ timerDisplay }}
+            </span>
           </div>
         </div>
 
@@ -29,65 +47,77 @@
 
           <!-- MCQ -->
           <div v-if="currentQuestion.question_type === 'mcq'" class="space-y-3">
-            <button v-for="(opt, i) in currentQuestion.options" :key="i"
+            <button v-for="(opt, i) in JSON.parse(currentQuestion.options || '[]')" :key="i"
               @click="selectAnswer(opt)"
-              :class="['w-full text-left px-5 py-4 border font-mono text-sm transition-all quiz-option',
-                answers[currentQuestion.id] === opt ? 'selected' : 'border-gold/20 text-ash-muted']">
+              :class="['w-full text-left px-5 py-4 border font-mono text-sm transition-all',
+                answers[currentQuestion.id] === opt
+                  ? 'border-gold bg-gold/10 text-gold'
+                  : 'border-gold/20 text-ash-muted hover:border-gold/50']">
               <span class="text-gold mr-3">{{ String.fromCharCode(65 + i) }}.</span>{{ opt }}
             </button>
           </div>
 
-          <!-- Fill in the blank -->
+          <!-- Fill -->
           <div v-else-if="currentQuestion.question_type === 'fill'">
             <input v-model="fillAnswer"
-              @keyup.enter="submitFill"
+              @keyup.enter="nextQuestion"
               class="w-full bg-ink-soft border border-gold/20 focus:border-gold px-4 py-3 text-ash text-lg outline-none font-mono text-center tracking-widest"
               placeholder="Ketik jawaban..."/>
           </div>
         </div>
 
-        <!-- Navigation -->
-        <div class="flex justify-between">
+        <!-- Nav -->
+        <div class="flex justify-between gap-4">
           <button v-if="currentIndex > 0" @click="prevQuestion"
             class="px-6 py-3 border border-gold/20 text-ash-muted font-mono text-sm tracking-widest hover:border-gold transition-all">
             ← SEBELUMNYA
           </button>
           <div v-else></div>
           <button v-if="currentIndex < questions.length - 1" @click="nextQuestion"
-            :disabled="!answers[currentQuestion?.id]"
-            class="px-6 py-3 bg-gold text-ink font-mono text-sm tracking-widest hover:bg-gold-light transition-all disabled:opacity-30">
+            class="px-6 py-3 bg-gold text-ink font-mono text-sm tracking-widest hover:bg-gold-light transition-all">
             BERIKUTNYA →
           </button>
           <button v-else @click="submitQuiz"
-            :disabled="!answers[currentQuestion?.id]"
-            class="px-6 py-3 bg-gold text-ink font-mono text-sm tracking-widest hover:bg-gold-light transition-all disabled:opacity-30">
+            class="px-6 py-3 bg-gold text-ink font-mono text-sm tracking-widest hover:bg-gold-light transition-all">
             KUMPULKAN
           </button>
         </div>
       </div>
 
       <!-- Result -->
-      <div v-else-if="submitted && result" class="text-center">
-        <div class="font-display text-6xl text-gold font-semibold mb-2">{{ result.score }}</div>
+      <div v-else-if="submitted && result" class="text-center py-10">
+        <div class="font-mono text-gold text-xs tracking-widest mb-4">HASIL QUIZ</div>
+        <div class="font-display text-7xl text-ash font-semibold mb-1">{{ result.score }}</div>
         <div class="font-mono text-ash-muted text-sm mb-6">/ 100</div>
-        <div :class="['font-mono text-xs tracking-widest mb-8 px-4 py-2 inline-block',
-          result.passed ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400']">
-          {{ result.passed ? 'LULUS' : 'TIDAK LULUS' }}
+        <div :class="['font-mono text-xs tracking-widest mb-4 px-6 py-2 inline-block',
+          result.passed ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30']">
+          {{ result.passed ? 'LULUS' : 'TIDAK LULUS — COBA LAGI' }}
         </div>
-        <div v-if="result.grade" class="font-display text-4xl text-ash font-semibold mb-8">
+        <div v-if="result.grade" class="font-display text-4xl text-gold font-semibold mb-8">
           Grade {{ result.grade }}
         </div>
-        <div class="flex gap-4 justify-center">
+
+        <!-- Cooldown info jika gagal -->
+        <div v-if="!result.passed" class="border border-gold/20 p-4 mb-8 font-mono text-sm text-ash-muted">
+          Bisa mengulang dalam <span class="text-gold">3 menit</span>.
+        </div>
+
+        <div class="flex gap-4 justify-center flex-wrap">
           <NuxtLink to="/dashboard"
             class="px-6 py-3 border border-gold/30 text-ash font-mono text-sm tracking-widest hover:border-gold transition-all">
             DASHBOARD
           </NuxtLink>
+          <button v-if="!result.passed" @click="retryQuiz"
+            class="px-6 py-3 border border-gold/30 text-gold font-mono text-sm tracking-widest hover:border-gold transition-all">
+            COBA LAGI (3 MENIT)
+          </button>
           <NuxtLink v-if="result.eligible_for_cert" to="/dashboard/certificates"
             class="px-6 py-3 bg-gold text-ink font-mono text-sm tracking-widest hover:bg-gold-light transition-all">
             KLAIM SERTIFIKAT
           </NuxtLink>
         </div>
       </div>
+
     </div>
   </div>
 </template>
@@ -109,29 +139,74 @@ const currentIndex = ref(0)
 const answers = ref<Record<string, string>>({})
 const fillAnswer = ref('')
 const startedAt = ref(new Date())
+
+// Timer
 const timeLeft = ref(0)
+const timerDisplay = computed(() => {
+  const m = Math.floor(timeLeft.value / 60)
+  const s = timeLeft.value % 60
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+})
+let timerInterval: any = null
+
+// Cooldown
+const onCooldown = ref(false)
+const cooldownLeft = ref(0)
+const cooldownDisplay = computed(() => {
+  const m = Math.floor(cooldownLeft.value / 60)
+  const s = cooldownLeft.value % 60
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+})
+let cooldownInterval: any = null
 
 const currentQuestion = computed(() => questions.value[currentIndex.value])
 
 onMounted(async () => {
+  // Cek cooldown dari localStorage
+  const cooldownKey = `quiz_cooldown_${route.params.id}`
+  const cooldownEnd = localStorage.getItem(cooldownKey)
+  if (cooldownEnd) {
+    const remaining = Math.floor((parseInt(cooldownEnd) - Date.now()) / 1000)
+    if (remaining > 0) {
+      onCooldown.value = true
+      cooldownLeft.value = remaining
+      cooldownInterval = setInterval(() => {
+        cooldownLeft.value--
+        if (cooldownLeft.value <= 0) {
+          onCooldown.value = false
+          clearInterval(cooldownInterval)
+          localStorage.removeItem(cooldownKey)
+        }
+      }, 1000)
+      loading.value = false
+      return
+    }
+  }
+
   const { data: quizData } = await supabase.from('quizzes').select('*').eq('id', route.params.id).single()
   const { data: questionsData } = await supabase.from('questions').select('*').eq('quiz_id', route.params.id).order('order_num')
   quiz.value = quizData
   questions.value = questionsData || []
-  if (quizData?.time_limit_minutes) timeLeft.value = quizData.time_limit_minutes
+
+  // Set timer: 1 menit per soal
+  const totalSeconds = (questionsData?.length || 10) * 60
+  timeLeft.value = totalSeconds
+  startTimer()
   loading.value = false
 })
 
-function selectAnswer(opt: string) {
-  if (currentQuestion.value) answers.value[currentQuestion.value.id] = opt
+function startTimer() {
+  timerInterval = setInterval(() => {
+    timeLeft.value--
+    if (timeLeft.value <= 0) {
+      clearInterval(timerInterval)
+      submitQuiz()
+    }
+  }, 1000)
 }
 
-function submitFill() {
-  if (currentQuestion.value && fillAnswer.value.trim()) {
-    answers.value[currentQuestion.value.id] = fillAnswer.value.trim()
-    fillAnswer.value = ''
-    if (currentIndex.value < questions.value.length - 1) currentIndex.value++
-  }
+function selectAnswer(opt: string) {
+  if (currentQuestion.value) answers.value[currentQuestion.value.id] = opt
 }
 
 function nextQuestion() {
@@ -139,7 +214,7 @@ function nextQuestion() {
     answers.value[currentQuestion.value.id] = fillAnswer.value.trim()
     fillAnswer.value = ''
   }
-  currentIndex.value++
+  if (currentIndex.value < questions.value.length - 1) currentIndex.value++
 }
 
 function prevQuestion() {
@@ -147,10 +222,13 @@ function prevQuestion() {
 }
 
 async function submitQuiz() {
+  clearInterval(timerInterval)
   if (!user.value) return
+
   if (currentQuestion.value?.question_type === 'fill' && fillAnswer.value.trim()) {
     answers.value[currentQuestion.value.id] = fillAnswer.value.trim()
   }
+
   const payload = {
     user_id: user.value.id,
     quiz_id: route.params.id,
@@ -159,12 +237,51 @@ async function submitQuiz() {
     tab_switches: 0,
     fullscreen_exits: 0,
   }
+
   try {
     const res = await post('/api/quiz/submit', payload) as any
     result.value = res
     submitted.value = true
+
+    // Set cooldown 3 menit jika tidak lulus
+    if (!res.passed) {
+      const cooldownKey = `quiz_cooldown_${route.params.id}`
+      localStorage.setItem(cooldownKey, String(Date.now() + 3 * 60 * 1000))
+    }
   } catch (e) {
     console.error(e)
   }
 }
+
+function retryQuiz() {
+  // Reset semua
+  submitted.value = false
+  result.value = null
+  answers.value = {}
+  fillAnswer.value = ''
+  currentIndex.value = 0
+  startedAt.value = new Date()
+  timeLeft.value = (questions.value.length || 10) * 60
+  startTimer()
+
+  // Set cooldown
+  const cooldownKey = `quiz_cooldown_${route.params.id}`
+  cooldownLeft.value = 180
+  localStorage.setItem(cooldownKey, String(Date.now() + 3 * 60 * 1000))
+  onCooldown.value = true
+
+  cooldownInterval = setInterval(() => {
+    cooldownLeft.value--
+    if (cooldownLeft.value <= 0) {
+      onCooldown.value = false
+      clearInterval(cooldownInterval)
+      localStorage.removeItem(cooldownKey)
+    }
+  }, 1000)
+}
+
+onUnmounted(() => {
+  clearInterval(timerInterval)
+  clearInterval(cooldownInterval)
+})
 </script>
