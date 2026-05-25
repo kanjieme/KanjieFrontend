@@ -9,7 +9,6 @@
         <p class="text-ash-muted max-w-lg">Selesaikan semua modul untuk unlock Final Exam dan klaim sertifikat.</p>
       </div>
 
-      <!-- Tier tabs -->
       <div class="flex gap-4 mb-8 border-b border-gold/10">
         <button v-for="tier in ['basic','advanced']" :key="tier"
           @click="activeTier = tier"
@@ -19,11 +18,9 @@
         </button>
       </div>
 
-      <!-- Module list -->
       <div class="space-y-3">
         <div v-for="(mod, i) in filteredModules" :key="mod.id"
           class="border border-gold/20 p-5 hover:border-gold/40 transition-all flex items-center gap-5">
-          <!-- Checkpoint -->
           <div class="w-8 h-8 flex-shrink-0 flex items-center justify-center border border-gold/30 font-mono text-xs text-ash-muted">
             {{ String(i + 1).padStart(2, '0') }}
           </div>
@@ -31,7 +28,7 @@
             <h3 class="font-display text-lg text-ash font-semibold">{{ mod.title }}</h3>
             <p class="text-ash-muted text-sm mt-1">{{ mod.description }}</p>
           </div>
-          <NuxtLink :to="`/learn/${levelCode.toLowerCase()}/${mod.slug}`"
+          <NuxtLink :to="`/learn/${levelCode.toLowerCase()}/module/${mod.slug}`"
             class="font-mono text-xs text-gold hover:underline tracking-widest flex-shrink-0">
             MULAI →
           </NuxtLink>
@@ -45,7 +42,6 @@
 const route = useRoute()
 const levelCode = computed(() => (route.params.level as string).toUpperCase())
 const activeTier = ref('basic')
-
 const supabase = useSupabaseClient()
 const modules = ref<any[]>([])
 
